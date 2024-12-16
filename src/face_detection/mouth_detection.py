@@ -1,4 +1,4 @@
-from utils import euclaideanDistance
+from face_detection.utils import euclaideanDistance
 
 
 

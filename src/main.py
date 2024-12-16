@@ -1,10 +1,12 @@
 import cv2
 import mediapipe
 import asyncio
-from websocket_manager import WebSocketManager
-from face_tracker import *
+
+from websocket.websocket_manager import WebSocketManager
+from face_detection.face_tracker import *
 import threading
-from concurrent.futures import ThreadPoolExecutor
+# from concurrent.futures import ThreadPoolExecutor
+
 
 mediapipe_face_mesh = mediapipe.solutions.face_mesh
 face_mesh = mediapipe_face_mesh.FaceMesh(
@@ -49,6 +51,9 @@ def main():
     while True:
         ret, frame = video_capture.read()
         frame = cv2.resize(frame, None, fx=1.5, fy=1.5, interpolation=cv2.INTER_CUBIC)
+
+        frame_show = frame.copy()
+
         rgb_frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
         results = face_mesh.process(rgb_frame)
         
@@ -67,16 +72,17 @@ def main():
                     face_trackers[face_idx] = FaceTracker(face_idx, websocket_manager)
                 
                 # Mettre à jour le tracker
-                face_trackers[face_idx].update(frame, face_landmarks)
+                frame_show = face_trackers[face_idx].update(frame, frame_show, face_landmarks)
+                # cv2.imshow(face_trackers[face_idx].window_name, face_frame)
             
             # Supprimer les trackers des visages qui ne sont plus détectés
             faces_to_remove = set(face_trackers.keys()) - current_faces
             for face_idx in faces_to_remove:
-                cv2.destroyWindow(face_trackers[face_idx].window_name)
+                # cv2.destroyWindow(face_trackers[face_idx].window_name)
                 del face_trackers[face_idx]
         
         # Afficher le frame principal avec tous les visages détectés
-        cv2.imshow('All Faces', frame)
+        cv2.imshow('All Faces', frame_show)
         
         key = cv2.waitKey(2)
         if key == 27 or key == ord('q'):

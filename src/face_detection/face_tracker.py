@@ -1,10 +1,12 @@
+import datetime
 import cv2
 import asyncio
 from typing import Optional
 
-from blink_detection import extract_eye_region, analyze_eye_state, blinkRatio
 
-from mouth_detection import mouthRatio
+from face_detection.blink_detection import extract_eye_region, analyze_eye_state, blinkRatio
+
+from face_detection.mouth_detection import mouthRatio
 
 
 # landmarks from mesh_map.jpg
@@ -38,8 +40,8 @@ INNER_LIPS = {
     'right': [308]         # Point droit
 }
 
-def landmarksDetection(image, landmarks, draw=False):
-    image_height, image_width = image.shape[:2]
+def landmarksDetection(frame, frame_show, landmarks, draw=False):
+    image_height, image_width = frame.shape[:2]
     mesh_coordinates = [(int(point.x * image_width), int(point.y * image_height)) 
                        for point in landmarks.landmark]
     
@@ -47,13 +49,13 @@ def landmarksDetection(image, landmarks, draw=False):
         for idx, point in enumerate(mesh_coordinates):
             if idx in LEFT_EYE or idx in RIGHT_EYE:
                 # Points des yeux en bleu
-                cv2.circle(image, point, 2, COLORS['BLUE'], -1)
+                cv2.circle(frame_show, point, 2, COLORS['BLUE'], -1)
             elif idx in LIPS:
                 # Points de la bouche en rouge
-                cv2.circle(image, point, 2, COLORS['RED'], -1)
+                cv2.circle(frame_show, point, 2, COLORS['RED'], -1)
             else:
                 # Autres points en vert
-                cv2.circle(image, point, 2, COLORS['GREEN'], -1)
+                cv2.circle(frame_show, point, 2, COLORS['GREEN'], -1)
                 
     return mesh_coordinates
 
@@ -90,12 +92,12 @@ class FaceTracker:
             except Exception as e:
                 print(f"Error in emit_face_state: {e}")
     
-    def update(self, frame, landmarks):
+    def update(self, frame, frame_show, landmarks):
         # Créer une copie du frame pour ce visage
         face_frame = frame.copy()
         
         # Dessiner les landmarks pour ce visage
-        mesh_coordinates = landmarksDetection(face_frame, landmarks, True)
+        mesh_coordinates = landmarksDetection(face_frame, frame_show, landmarks, True)
         
         # Calculer le ratio des yeux
         total_ratio, left_ratio, right_ratio = blinkRatio(face_frame, mesh_coordinates, RIGHT_EYE, LEFT_EYE)
@@ -147,7 +149,8 @@ class FaceTracker:
             cv2.putText(face_frame, "Bouche fermee: " + str(mouth_ratio), (30, 700), FONT, 1, COLORS['GREEN'], 2)
         
         # Afficher la fenêtre pour ce visage
-        cv2.imshow(self.window_name, face_frame)
+        # cv2.imshow(self.window_name, face_frame)
+        return frame_show
 
 
         

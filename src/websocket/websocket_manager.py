@@ -1,6 +1,7 @@
 # websocket_manager.py
 import asyncio
 import json
+import time
 import websockets
 from typing import Dict, Any
 from queue import Queue
@@ -56,7 +57,7 @@ class WebSocketManager:
         message = json.dumps({
             "event_type": "face_data",
             "data": face_data,
-            "timestamp": asyncio.get_event_loop().time()
+            "timestamp": time.time()
         })
         self.message_queue.put(message)
         print(f"Message queued: {message}")

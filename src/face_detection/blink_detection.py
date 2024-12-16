@@ -1,6 +1,8 @@
-from utils import euclaideanDistance
 import cv2
 import numpy as np
+
+from face_detection.utils import euclaideanDistance
+
 
 
 # Blinking Ratio
