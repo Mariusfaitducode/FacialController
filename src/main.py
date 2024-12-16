@@ -69,7 +69,9 @@ def main():
                 
                 # Créer ou obtenir le tracker pour ce visage
                 if face_idx not in face_trackers:
-                    face_trackers[face_idx] = FaceTracker(face_idx, websocket_manager)
+                    face_tracker = FaceTracker(face_idx, websocket_manager)
+                    face_trackers[face_idx] = face_tracker
+                    websocket_manager.register_face_tracker(face_idx, face_tracker)
                 
                 # Mettre à jour le tracker
                 frame_show = face_trackers[face_idx].update(frame, frame_show, face_landmarks)
@@ -78,7 +80,7 @@ def main():
             # Supprimer les trackers des visages qui ne sont plus détectés
             faces_to_remove = set(face_trackers.keys()) - current_faces
             for face_idx in faces_to_remove:
-                # cv2.destroyWindow(face_trackers[face_idx].window_name)
+                websocket_manager.unregister_face_tracker(face_idx)
                 del face_trackers[face_idx]
         
         # Afficher le frame principal avec tous les visages détectés

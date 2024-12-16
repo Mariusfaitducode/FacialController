@@ -75,6 +75,7 @@ class FaceTracker:
         self.websocket_manager = websocket_manager
         self.last_blink_state = False
         self.last_mouth_state = False
+        self.snapshot_requested = False  # Nouveau flag
         
     def emit_face_state(self, is_blinking: bool, mouth_ratio: float):
         if self.websocket_manager:
@@ -150,7 +151,21 @@ class FaceTracker:
         
         # Afficher la fenêtre pour ce visage
         # cv2.imshow(self.window_name, face_frame)
+
+        # Après le traitement du visage
+        # processed_face = frame[y:y+h, x:x+w]
+        processed_face = frame
+        
+        # Si un snapshot a été demandé, l'envoyer via websocket
+        if self.snapshot_requested:
+            self.websocket_manager.queue_snapshot(self.face_id, processed_face)
+            self.snapshot_requested = False  # Réinitialiser le flag
+            
         return frame_show
+
+    def request_snapshot(self):
+        """Méthode pour demander un snapshot lors de la prochaine update"""
+        self.snapshot_requested = True
 
 
         
