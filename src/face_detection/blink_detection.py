@@ -34,6 +34,9 @@ def blinkRatio(image, landmarks, right_indices, left_indices):
     lvDistance = euclaideanDistance(lv_top, lv_bottom)
     lhDistance = euclaideanDistance(lh_right, lh_left)
 
+    if rhDistance == 0 or rvDistance == 0 or lhDistance == 0 or lvDistance == 0:
+        return 0, 0, 0
+
     # Finding ratio of LEFT and Right Eyes
     reRatio = rhDistance/rvDistance
     leRatio = lhDistance/lvDistance

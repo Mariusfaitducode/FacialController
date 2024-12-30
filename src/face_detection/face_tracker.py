@@ -154,11 +154,37 @@ class FaceTracker:
 
         # Après le traitement du visage
         # processed_face = frame[y:y+h, x:x+w]
-        processed_face = frame
+        
         
         # Si un snapshot a été demandé, l'envoyer via websocket
         if self.snapshot_requested:
-            self.websocket_manager.queue_snapshot(self.face_id, processed_face)
+
+            # Découper l'image pour ne garder que le visage détecté
+
+            # Calculer le rectangle englobant du visage
+            x_coords = [p[0] for p in mesh_coordinates]
+            y_coords = [p[1] for p in mesh_coordinates]
+            
+            # Ajouter une marge autour du visage (20% de la taille)
+            x_min, x_max = min(x_coords), max(x_coords)
+            y_min, y_max = min(y_coords), max(y_coords)
+            
+            width = x_max - x_min
+            height = y_max - y_min
+            margin_x = int(width * 0.2)
+            margin_y = int(height * 0.2)
+            
+            # Assurer que les coordonnées restent dans les limites de l'image
+            frame_height, frame_width = frame.shape[:2]
+            x_min = max(0, x_min - margin_x)
+            y_min = max(0, y_min - margin_y)
+            x_max = min(frame_width, x_max + margin_x)
+            y_max = min(frame_height, y_max + margin_y)
+            
+            # Découper le visage
+            face_crop = frame[y_min:y_max, x_min:x_max]
+
+            self.websocket_manager.queue_snapshot(self.face_id, face_crop)
             self.snapshot_requested = False  # Réinitialiser le flag
             
         return frame_show
