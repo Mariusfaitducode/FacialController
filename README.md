@@ -1,26 +1,32 @@
-# Système de détection faciale et contrôle gestuel
+# FacialController
 
-Ce projet permet de détecter le visage de plusieurs personnes en temps réel, d'analyser leurs expressions faciales (clignements des yeux et ouverture de la bouche), et de transmettre ces informations via WebSocket pour servir de contrôle dans diverses applications.
+Real-time face tracking that turns eye blinks and mouth opening into control events, streamed over WebSocket so any app or game can use your face as a controller.
 
-## Fonctionnalités
+## What it does
+- Captures the webcam and tracks up to 4 faces at once with MediaPipe Face Mesh.
+- Detects blinks from an eye aspect ratio computed on the face landmarks, and counts them per face.
+- Detects whether the mouth is open from the inner-lip landmarks.
+- Runs a WebSocket server (`ws://localhost:8765`) and pushes a JSON event to all connected clients whenever a face's blink or mouth state changes.
+- Answers `request_snapshot` messages from clients by sending a cropped JPEG of the requested face as a binary message.
+- Shows a preview window with every detected face and its landmarks.
 
-- Détection multi-visages
-- Suivi des clignements des yeux
-- Détection de l'ouverture de la bouche
-- Transmission en temps réel via WebSocket
+## Tech stack
+Python, OpenCV, MediaPipe Face Mesh, `websockets`, asyncio.
 
-## Applications
+## Run it locally
+There is no requirements file; install the libraries used by the code:
 
-- Contrôle de jeux vidéo
-- Interface utilisateur alternative
-- Applications interactives personnalisées
+```bash
+pip install opencv-python mediapipe websockets numpy
+cd src
+python main.py
+```
+Then connect a WebSocket client to `ws://localhost:8765` (a small test client is in `src/websocket/test_websocket_client.py`). Press `q` or `Esc` in the preview window to quit.
 
-## Fonctionnement
+Example event sent to clients:
+```json
+{"event_type": "face_data", "data": {"face_id": 0, "blink_detected": true, "mouth_open": false, "mouth_ratio": 0.05, "total_blinks": 3}, "timestamp": 1735000000.0}
+```
 
-1. Détection des visages en temps réel avec MediaPipe
-2. Analyse des mouvements faciaux
-3. Transmission des données via WebSocket
-4. Interprétation par l'application cible
-
-
-
+## Context
+Built in December 2024 to explore faces as an alternative input for games and interactive applications. `mesh_map.jpg` and `mediapipe_face_landmark_fullsize.png` are MediaPipe landmark reference maps used to pick the eye and mouth landmark indices.
